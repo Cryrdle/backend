@@ -25,7 +25,7 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use('/api/v1/coins', coinsRouter)
+app.use('/', coinsRouter)
 app.use('/api/v1/users', usersRouter)
 
 module.exports = app

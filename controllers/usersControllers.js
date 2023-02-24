@@ -4,7 +4,21 @@ const users = JSON.parse(
     fs.readFileSync(`${__dirname}/../data/cryrdle-users.json`)
 )
 
-//---USERS ROUTING---//
+exports.checkBody = (req, res, next) => {
+    if (!req.body.address) {
+        return res.status(400).json({
+            status: 'fail',
+            message: 'address is required',
+        })
+    }
+    next()
+}
+
+/**
+ * getAllUsers...
+ * -- may not be required depending on
+ *    smart contract implementation
+ */
 exports.getAllUsers = (req, res) => {
     res.status(200).json({
         status: 'success',
@@ -15,13 +29,17 @@ exports.getAllUsers = (req, res) => {
         },
     })
 }
+
+/**
+ * getSingleUser shall...
+ * -- primarily be used to get user's daily guesses
+ *    prior to them being submitted on-chain. This
+ *    will affect the frontend state upon signin
+ */
 exports.getSingleUser = (req, res) => {
     const id = req.params.id * 1
     const user = users.find((el) => el.id === id)
 
-    console.log(user)
-
-    // when first user is index 0
     if (id > users.length - 1) {
         return res.status(404).json({
             status: 'fail',

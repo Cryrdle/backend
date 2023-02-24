@@ -1,101 +1,74 @@
-const fs = require('fs')
+const axios = require('axios')
 
-// const users = JSON.parse(
-//     fs.readFileSync(`${__dirname}/../data/cryrdle-users.json`)
-// )
+// set number of coins to retrieve
+NUMBER_OF_COINS = 5
+NUMBER_OF_META = NUMBER_OF_COINS
 
-// .params for req
-exports.checkID = (req, res, next, val) => {
-    console.log(`Coin id is: ${val}`)
-    if (req.params.id * 1 > coins.length) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid ID',
+exports.getCoinsListMeta = async (req, res) => {
+    const MY_CMC_API_KEY = process.env.CMC_API_KEY
+    const listingUrl = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=${NUMBER_OF_COINS}&convert=USD`
+    const infoUrl = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/info'
+    try {
+        const listingResponse = await axios.get(listingUrl, {
+            headers: {
+                'X-CMC_PRO_API_KEY': MY_CMC_API_KEY,
+            },
         })
-    }
-    next()
-}
-
-// checkBody for req
-exports.checkBody = (req, res, next) => {
-    if (!req.body.name || !req.body.price) {
-        return res.status(400).json({
-            status: 'fail',
-            message: 'Missing name or price',
+        const myListingResponse = listingResponse.data.data.map((coin) => {
+            return {
+                id: coin.id,
+                name: coin.name,
+                symbol: coin.symbol,
+                date_added: coin.date_added,
+                max_supply: coin.max_supply,
+                cmc_rank: coin.cmc_rank,
+                price: coin.quote.USD.price,
+                marketCap: coin.quote.USD.market_cap,
+                volume24h: coin.quote.USD.volume_24h,
+            }
         })
-    }
-    next()
-}
 
-exports.getAllCoins = (req, res) => {
-    res.status(200).json({
-        status: 'success',
-        requestTime: req.requestTime,
-        results: coins.length,
-        data: {
-            coins: coins,
-        },
-    })
-}
-exports.createCoin = (req, res) => {
-    const newId = coins[coins.length - 1].id + 1
-    const newCoin = Object.assign({ id: newId }, req.body)
+        //---------- SPLIT AND RETRIEVE METADATA ----------
+        const topCoins = myListingResponse.slice(0, NUMBER_OF_META)
+        const ids_array = topCoins.map((coin) => coin.id)
+        const ids = topCoins.map((coin) => coin.id).join()
 
-    coins.push(newCoin)
-
-    fs.writeFile(
-        `${__dirname}/data/nft-simple.json`,
-        JSON.stringify(coins),
-        (err) => {
-            res.status(201).json({
-                status: 'success',
-                data: {
-                    nft: newCoin,
-                },
-            })
-        }
-    )
-}
-exports.getSingleCoin = (req, res) => {
-    const id = req.params.id * 1
-    const nft = coins.find((el) => el.id === id)
-
-    if (id > coins.length) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid ID',
+        const infoResponse = await axios.get(infoUrl, {
+            headers: {
+                'X-CMC_PRO_API_KEY': MY_CMC_API_KEY,
+            },
+            params: {
+                id: ids, // pass to info endpoint
+            },
         })
-    }
-    res.status(200).json({
-        status: 'success',
-        data: {
-            nft: nft,
-        },
-    })
-}
-exports.updateCoin = (req, res) => {
-    if (req.params.id * 1 > coins.length) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid ID',
+        const myInfoResponse = ids_array.map((id) => {
+            return {
+                coin: infoResponse.data.data[id],
+                category: infoResponse.data.data[id].category,
+                description: infoResponse.data.data[id].description,
+                logo: infoResponse.data.data[id].logo,
+                tags: infoResponse.data.data[id].tags,
+                website: infoResponse.data.data[id].urls,
+            }
         })
-    }
-    res.status(200).json({
-        status: 'success',
-        data: {
-            nft: '<Updating Coin here...>',
-        },
-    })
-}
-exports.deleteCoin = (req, res) => {
-    if (req.params.id * 1 > coins.length) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid ID',
+
+        // Merge the two responses based on the `id` field
+        const coinData = topCoins.map((coin) => {
+            const id = coin.id
+            const fullmeta = myInfoResponse.find((item) => item.coin.id === id)
+            const metadata = {
+                category: fullmeta.category,
+                description: fullmeta.description,
+                logo: fullmeta.logo,
+                tags: fullmeta.tags,
+                // website: fullmeta.urls.website[0],
+            }
+            return { ...coin, ...metadata }
         })
+
+        res.json(coinData) // Send the extracted data back to the client
+    } catch (error) {
+        console.error(error)
+        res.status(500).send('Error retrieving coin data')
     }
-    res.status(404).json({
-        status: 'success',
-        data: null,
-    })
 }
