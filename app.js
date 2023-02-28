@@ -11,10 +11,12 @@ app.use(express.json())
 const dotenv = require('dotenv')
 dotenv.config({ path: './.env' }) // needed for .env
 
-// only log in development
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'))
-}
+// // only log in development
+// if (process.env.NODE_ENV === 'development') {
+//     app.use(morgan('dev'))
+// }
+
+app.use(morgan('dev'))
 
 // SERVING (STATIC) TEMPLATE, IMAGE, ETC FILES using express.static
 // app.use(express.static(`${__dirname}/img`))
@@ -25,7 +27,7 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use('/', coinsRouter)
-app.use('/api/v1/users', usersRouter)
+app.use('/api/v1/', coinsRouter)
+app.use('/api/v1/', usersRouter)
 
 module.exports = app

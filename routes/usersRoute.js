@@ -1,16 +1,16 @@
 const express = require('express')
-
 const usersController = require('../controllers/usersControllers')
 
 const router = express.Router()
 
 // ROUTER USERS
 router
-    .route('/')
+    .route('/users')
     .get(usersController.getAllUsers)
     .post(usersController.createUser)
+
 router
-    .route('/:id')
+    .route('/users/:address')
     .get(usersController.getSingleUser)
     .patch(usersController.updateUser)
     .delete(usersController.deleteUser)

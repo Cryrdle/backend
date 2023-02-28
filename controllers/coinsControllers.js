@@ -1,10 +1,12 @@
 const axios = require('axios')
+const Coin = require('../models/coinsModel')
 
 // set number of coins to retrieve
-NUMBER_OF_COINS = 5
+NUMBER_OF_COINS = 70
 NUMBER_OF_META = NUMBER_OF_COINS
 
-exports.getCoinsListMeta = async (req, res) => {
+// get coin data from coinmarketcap
+exports.getCoinsList = async (req, res) => {
     const MY_CMC_API_KEY = process.env.CMC_API_KEY
     const listingUrl = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=${NUMBER_OF_COINS}&convert=USD`
     const infoUrl = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/info'
@@ -66,9 +68,74 @@ exports.getCoinsListMeta = async (req, res) => {
             return { ...coin, ...metadata }
         })
 
-        res.json(coinData) // Send the extracted data back to the client
+        // clear prev coins list from MongoDB Cloud
+        await Coin.deleteMany({})
+        console.log('Coin list cleared from database')
+
+        // Save new coins list to MongoDB Cloud
+        await Coin.insertMany(coinData)
+        console.log('Coin data saved to database')
+
+        // res.json(coinData) // Send the extracted data back to the client
+        res.status(200).json({
+            status: 'success',
+            requestTime: req.requestTime,
+            results: coinData.length.length,
+            data: coinData,
+        })
     } catch (error) {
         console.error(error)
         res.status(500).send('Error retrieving coin data')
     }
 }
+
+// get single coin data from mongo database
+exports.getSingleCoin = async (req, res) => {
+    Coin.findOne({ symbol: req.params.symbol }, (err, doc) => {
+        if (err) {
+            res.status(500).json({
+                message: 'Error getting coin',
+                error: err,
+            })
+        } else if (!doc) {
+            res.status(404).json({
+                status: 'fail',
+                message: 'Invalid ID..',
+            })
+        } else {
+            res.status(200).send(doc)
+        }
+    })
+}
+// get single coin by index
+exports.getWinnerCoin = async (req, res) => {
+    const id = req.params.cmc_rank * 1
+    Coin.findOne({ cmc_rank: id }, (err, doc) => {
+        if (err) {
+            res.status(500).json({
+                message: 'Error getting coin',
+                error: err,
+            })
+        } else if (!doc) {
+            res.status(404).json({
+                status: 'fail!',
+                message: 'Invalid ID!',
+                id: id,
+            })
+        } else {
+            res.status(200).send(doc)
+        }
+    })
+}
+
+// 1. Get coins from CMC once per day
+// ---- make the request in coinsController
+// ---- do not need to pass to client
+// 2. Immediately after save coins to database
+// ---- use the mongo.create to store that info in the database
+// 3. Compare user's guesses to coins in database
+// ---- use mongo.find to get the info from the database upon each user guess
+// 4. Get data on user's guesses from database
+// ---- add each guess to a user's (daily) guesses
+// ---- use mongo.find to get the info from the database upon
+// ---- for each user guess
