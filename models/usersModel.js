@@ -1,37 +1,53 @@
 const mongoose = require('mongoose')
 
-const MAX_GUESSES = 10
+const MAX_GUESSES = 5
 
 // data will pass through the schema before being saved to the database
 const userSchema = new mongoose.Schema({
     address: {
         type: String,
         required: true,
+        unique: true,
     },
-    streak: {
+    playStreak: {
         type: Number,
-        required: true,
-        default: 0,
+        default: 0, // 1 create on Connect/Payment
     },
-    data: {
-        type: Map,
-        of: {
-            date: Date,
-            paid: {
+    winStreak: {
+        type: Number,
+        default: 0, // 1 create on Connect/Payment
+    },
+    games: [
+        {
+            gameNum: {
+                type: Number, // retrieved and fed from SC
+                unique: true,
+            },
+            isPaid: {
                 type: Boolean,
-                default: false,
             },
             guesses: {
                 type: [String],
-                default: [],
+                default: [], // update on each guess
                 validate: [
                     (guesses) => guesses.length <= MAX_GUESSES,
-                    'Maximum number of guesses is 5',
+                    `Maximum number of guesses is ${MAX_GUESSES}.`,
                 ],
             },
+            isWin: {
+                type: Boolean,
+                default: false, // update on submit win
+            },
+            isWinSubmitted: {
+                type: Boolean,
+                default: false, // update on submit win
+            },
+            isLose: {
+                type: Boolean,
+                default: false, // is max guesses exceeded
+            },
         },
-        default: {},
-    },
+    ],
 })
 
 // create a model from the schema

@@ -6,14 +6,12 @@ const router = express.Router()
 // ROUTER coins
 
 // GET /coins from CMC
-router.route('/coins').get(coinsController.getCoinsList)
+router.route('/').get(coinsController.getCoinsList)
 
 // GET single coins from CMC by symbol from DB
-router
-    .route('/coins/:cmc_rank')
-    .get(coinsController.getSingleCoin, coinsController.getWinnerCoin)
-
-// GET single coins from CMC by symbol from DB
-// router.route('/coins/:symbol').get(coinsController.getSingleCoin)
+router.route('/:symbol').get(coinsController.getSingleCoin)
 
 module.exports = router
+
+// GET single coins from CMC by symbol from DB
+// router.route('/coins/:cmc_rank').get(coinsController.getSingleCoin) //, coinsController.getWinnerCoin)

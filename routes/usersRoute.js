@@ -5,14 +5,14 @@ const router = express.Router()
 
 // ROUTER USERS
 router
-    .route('/users')
+    .route('/')
     .get(usersController.getAllUsers)
     .post(usersController.createUser)
 
 router
-    .route('/users/:address')
+    .route('/:address')
     .get(usersController.getSingleUser)
     .patch(usersController.updateUser)
-    .delete(usersController.deleteUser)
+// .delete(usersController.deleteUser)
 
 module.exports = router

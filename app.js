@@ -16,6 +16,11 @@ dotenv.config({ path: './.env' }) // needed for .env
 //     app.use(morgan('dev'))
 // }
 
+app.use((req, res, next) => {
+    req.requestTime = new Date().toISOString()
+    next()
+})
+
 app.use(morgan('dev'))
 
 // SERVING (STATIC) TEMPLATE, IMAGE, ETC FILES using express.static
@@ -27,7 +32,7 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use('/api/v1/', coinsRouter)
-app.use('/api/v1/', usersRouter)
+app.use('/api/v1/coins', coinsRouter)
+app.use('/api/v1/users', usersRouter)
 
 module.exports = app
