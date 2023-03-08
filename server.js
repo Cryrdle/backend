@@ -1,3 +1,4 @@
+const cors = require('cors')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const app = require('./app')
@@ -16,11 +17,10 @@ mongoose
         useNewUrlParser: true,
     })
     .then((con) => {
-        // console.log(con.connection)
         console.log('DB connection successful')
     })
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 3999
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}...`)

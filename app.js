@@ -1,5 +1,6 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 
 //--INTERNAL IMPORT
 const coinsRouter = require('./routes/coinsRoute')
@@ -31,6 +32,8 @@ app.use((req, res, next) => {
     req.requestTime = new Date().toISOString()
     next()
 })
+
+app.use(cors())
 
 app.use('/api/v1/coins', coinsRouter)
 app.use('/api/v1/users', usersRouter)

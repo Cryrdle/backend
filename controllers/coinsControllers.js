@@ -27,6 +27,7 @@ exports.getCoinsList = async (req, res) => {
                 price: coin.quote.USD.price,
                 marketCap: coin.quote.USD.market_cap,
                 volume24h: coin.quote.USD.volume_24h,
+                label: `${coin.name} ${coin.symbol}`,
             }
         })
 
@@ -108,25 +109,26 @@ exports.getSingleCoin = async (req, res) => {
     })
 }
 // get single coin by index
-exports.getWinnerCoin = async (req, res) => {
-    const id = req.params.cmc_rank * 1
-    Coin.findOne({ cmc_rank: id }, (err, doc) => {
-        if (err) {
-            res.status(500).json({
-                message: 'Error getting coin',
-                error: err,
-            })
-        } else if (!doc) {
-            res.status(404).json({
-                status: 'fail!',
-                message: 'Invalid ID!',
-                id: id,
-            })
-        } else {
-            res.status(200).send(doc)
-        }
-    })
-}
+// TODO REMOVE THIS AND RETREIVE VIA QUERY
+// exports.getWinnerCoin = async (req, res) => {
+//     const id = req.params.cmc_rank * 1
+//     Coin.findOne({ cmc_rank: id }, (err, doc) => {
+//         if (err) {
+//             res.status(500).json({
+//                 message: 'Error getting coin',
+//                 error: err,
+//             })
+//         } else if (!doc) {
+//             res.status(404).json({
+//                 status: 'fail!',
+//                 message: 'Invalid ID!',
+//                 id: id,
+//             })
+//         } else {
+//             res.status(200).send(doc)
+//         }
+//     })
+// }
 
 // 1. Get coins from CMC once per day
 // ---- make the request in coinsController
